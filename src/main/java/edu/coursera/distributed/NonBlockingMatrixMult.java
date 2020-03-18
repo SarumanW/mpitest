@@ -3,7 +3,7 @@ package edu.coursera.distributed;
 import edu.coursera.distributed.util.MPI;
 import edu.coursera.distributed.util.MPI.MPIException;
 
-class MatrixMult {
+class NonBlockingMatrixMult {
 
     static void parallelMatrixMultiply(Matrix a, Matrix b, Matrix c,
                                        final MPI mpi) throws MPIException {
@@ -32,30 +32,37 @@ class MatrixMult {
 
                 System.out.printf("Sending %d rows to task %d offset= %d\n", rows[0], dest, offset[0]);
 
-                mpi.MPI_Send(offset, 0, 1, dest, 1, mpi.MPI_COMM_WORLD);
-                mpi.MPI_Send(rows, 0, 1, dest, 1, mpi.MPI_COMM_WORLD);
-                mpi.MPI_Send(a.getValues(), 0, rows[0] * a.getNCols(), dest, 1, mpi.MPI_COMM_WORLD);
-                mpi.MPI_Send(b.getValues(), 0, b.getNRows() * b.getNCols(), dest,
+                mpi.MPI_Isend(offset, 0, 1, dest, 1, mpi.MPI_COMM_WORLD);
+                mpi.MPI_Isend(rows, 0, 1, dest, 1, mpi.MPI_COMM_WORLD);
+                mpi.MPI_Isend(a.getValues(), 0, rows[0] * a.getNCols(), dest, 1, mpi.MPI_COMM_WORLD);
+                mpi.MPI_Isend(b.getValues(), 0, b.getNRows() * b.getNCols(), dest,
                         1, mpi.MPI_COMM_WORLD);
 
                 offset[0] = offset[0] + rows[0];
             }
 
+            MPI.MPI_Request[] requests = new MPI.MPI_Request[size - 1];
+
             for (source = 1; source <= size - 1; source++) {
-                mpi.MPI_Recv(offset, 0, 1, source, 2, mpi.MPI_COMM_WORLD);
-                mpi.MPI_Recv(rows, 0, 1, source, 2, mpi.MPI_COMM_WORLD);
-                mpi.MPI_Recv(c.getValues(), 0, c.getNCols() * c.getNRows(), source, 2, mpi.MPI_COMM_WORLD);
+                requests[source - 1] = mpi.MPI_Irecv(c.getValues(), 0, c.getNCols() * c.getNRows(),
+                        source, 2, mpi.MPI_COMM_WORLD);
 
                 System.out.printf("Received results from task %d\n", source);
             }
 
+            mpi.MPI_Waitall(requests);
+
             System.out.println("final");
         } else {
-            mpi.MPI_Recv(offset, 0, 1, 0, 1, mpi.MPI_COMM_WORLD);
-            mpi.MPI_Recv(rows, 0, 1, 0, 1, mpi.MPI_COMM_WORLD);
-            mpi.MPI_Recv(a.getValues(), 0, rows[0] * a.getNCols(), 0, 1, mpi.MPI_COMM_WORLD);
-            mpi.MPI_Recv(b.getValues(), 0, b.getNRows() * b.getNCols(), 0,
+            MPI.MPI_Request[] requests = new MPI.MPI_Request[4];
+
+            requests[0] = mpi.MPI_Irecv(offset, 0, 1, 0, 1, mpi.MPI_COMM_WORLD);
+            requests[1] = mpi.MPI_Irecv(rows, 0, 1, 0, 1, mpi.MPI_COMM_WORLD);
+            requests[2] = mpi.MPI_Irecv(a.getValues(), 0, rows[0] * a.getNCols(), 0, 1, mpi.MPI_COMM_WORLD);
+            requests[3] = mpi.MPI_Irecv(b.getValues(), 0, b.getNRows() * b.getNCols(), 0,
                     1, mpi.MPI_COMM_WORLD);
+
+            mpi.MPI_Waitall(requests);
 
             System.out.println("Recieved offset: " + offset[0]);
             System.out.println("Recieved rows: " + rows[0]);
@@ -70,9 +77,7 @@ class MatrixMult {
                 }
             }
 
-            mpi.MPI_Send(offset, 0, 1, 0, 2, mpi.MPI_COMM_WORLD);
-            mpi.MPI_Send(rows, 0, 1, 0, 2, mpi.MPI_COMM_WORLD);
-            mpi.MPI_Send(c.getValues(), 0, c.getNCols() * c.getNRows(), 0, 2, mpi.MPI_COMM_WORLD);
+            mpi.MPI_Isend(c.getValues(), 0, c.getNCols() * c.getNRows(), 0, 2, mpi.MPI_COMM_WORLD);
         }
 
         //mpi.MPI_Finalize();

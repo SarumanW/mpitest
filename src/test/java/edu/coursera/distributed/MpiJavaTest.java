@@ -126,7 +126,7 @@ public class MpiJavaTest extends TestCase {
                 for (int j = 0; j < c.getNCols(); j++) {
                     final String msg = "Expected " + copy_c.get(i, j)
                         + " at (" + i + ", " + j + ") but found " + c.get(i, j);
-                    TestCase.assertTrue(msg, copy_c.get(i, j) == c.get(i, j));
+                    TestCase.assertEquals(msg, copy_c.get(i, j), c.get(i, j));
                 }
             }
 
@@ -138,21 +138,17 @@ public class MpiJavaTest extends TestCase {
     }
 
     public void testMatrixMultiplySquareSmall() throws MPIException {
-        testDriver(3000, 3000, 3000);
+        testDriver(800, 800, 800);
     }
 
 //    public void testMatrixMultiplySquareLarge() throws MPIException {
 //        testDriver(1200, 1200, 1200);
 //    }
-//
+
 //    public void testMatrixMultiplyRectangular1Small() throws MPIException {
 //        testDriver(800, 1600, 500);
 //    }
-//
-//    public void testMatrixMultiplyRectangular2Small() throws MPIException {
-//        testDriver(1600, 800, 500);
-//    }
-//
+
 //    public void testMatrixMultiplyRectangularLarge() throws MPIException {
 //        testDriver(1800, 1400, 1000);
 //    }

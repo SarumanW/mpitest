@@ -1,5 +1,7 @@
 package edu.coursera.distributed;
 
+import java.util.Arrays;
+
 /**
  * Represents a single two-dimensional matrix.
  */
@@ -111,5 +113,13 @@ public final class Matrix {
      */
     public double[] getValues() {
         return values;
+    }
+
+    public double[] getRow(int rowNumber) {
+        double[] row = new double [ncols];
+
+        System.arraycopy(values, rowNumber * ncols, row, 0, ncols);
+
+        return row;
     }
 }
