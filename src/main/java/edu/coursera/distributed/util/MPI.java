@@ -189,17 +189,6 @@ public final class MPI {
         }
     }
 
-    public void MPI_Send(final int buf, final int offset, final int count,
-                         final int dst, final int tag, final MPI_Comm comm)
-            throws MPIException {
-        final IntBuffer wrapper = IntBuffer.wrap(new int[]{buf}, offset, count);
-        final int err = MPILib.INSTANCE.MPI_Send(wrapper, count,
-                MPI_INTEGER.datatype, dst, tag, comm.comm);
-        if (err != 0) {
-            throw new MPIException(err);
-        }
-    }
-
     /**
      * Java wrapper for MPI_Send.
      *
@@ -222,17 +211,6 @@ public final class MPI {
         }
     }
 
-    public void MPI_Send(final double buf, final int offset, final int count,
-                         final int dst, final int tag, final MPI_Comm comm)
-            throws MPIException {
-        final DoubleBuffer wrapper = DoubleBuffer.wrap(new double[]{buf}, offset, count);
-        final int err = MPILib.INSTANCE.MPI_Send(wrapper, count,
-                MPI_DOUBLE.datatype, dst, tag, comm.comm);
-        if (err != 0) {
-            throw new MPIException(err);
-        }
-    }
-
     /**
      * Java wrapper for MPI_Recv.
      *
@@ -248,18 +226,6 @@ public final class MPI {
                          final int src, final int tag, final MPI_Comm comm)
             throws MPIException {
         final IntBuffer wrapper = IntBuffer.wrap(buf, offset, count);
-        final int err = MPILib.INSTANCE.MPI_Recv(wrapper, count,
-                MPI_INTEGER.datatype, src, tag, comm.comm,
-                MPI_STATUS_IGNORE.status);
-        if (err != 0) {
-            throw new MPIException(err);
-        }
-    }
-
-    public void MPI_Recv(final int buf, final int offset, final int count,
-                         final int src, final int tag, final MPI_Comm comm)
-            throws MPIException {
-        final IntBuffer wrapper = IntBuffer.wrap(new int[]{buf}, offset, count);
         final int err = MPILib.INSTANCE.MPI_Recv(wrapper, count,
                 MPI_INTEGER.datatype, src, tag, comm.comm,
                 MPI_STATUS_IGNORE.status);
@@ -317,26 +283,6 @@ public final class MPI {
         return request;
     }
 
-    public MPI_Request MPI_Irecv(final int[] buf, final int offset,
-                                 final int count, final int src, final int tag, final MPI_Comm comm)
-            throws MPIException {
-
-        double[] doubleBuf = new double[buf.length];
-        for (int i = 0; i < buf.length; i++) {
-            doubleBuf[i] = buf[i];
-        }
-
-        Recv_MPI_Request request = new Recv_MPI_Request(count * 8, doubleBuf, offset,
-                count);
-        final int err = MPILib.INSTANCE.MPI_Irecv(request.buf, count,
-                MPI_DOUBLE.datatype, src, tag, comm.comm,
-                request.request);
-        if (err != 0) {
-            throw new MPIException(err);
-        }
-        return request;
-    }
-
     /**
      * Java wrapper for MPI_Isend.
      *
@@ -350,20 +296,6 @@ public final class MPI {
      * @throws MPIException On MPI error
      */
     public MPI_Request MPI_Isend(final double[] buf, final int offset,
-                                 final int count, final int dst, final int tag, final MPI_Comm comm)
-            throws MPIException {
-        Send_MPI_Request request = new Send_MPI_Request(count * 8);
-        request.buf.write(0, buf, offset, count);
-        final int err = MPILib.INSTANCE.MPI_Isend(request.buf, count,
-                MPI_DOUBLE.datatype, dst, tag, comm.comm,
-                request.request);
-        if (err != 0) {
-            throw new MPIException(err);
-        }
-        return request;
-    }
-
-    public MPI_Request MPI_Isend(final int[] buf, final int offset,
                                  final int count, final int dst, final int tag, final MPI_Comm comm)
             throws MPIException {
         Send_MPI_Request request = new Send_MPI_Request(count * 8);

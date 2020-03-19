@@ -15,12 +15,9 @@ class MatrixMult {
         final int size = mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD);
 
 
-        int averow = 0;
+        int averow, dest, extra, source;
         int[] offset = new int[]{0};
-        int dest = 0;
         int[] rows = new int[]{0};
-        int extra = 0;
-        int source = 0;
 
         if (myRank == 0) {
             averow = a.getNRows() / (size - 1);
@@ -29,8 +26,6 @@ class MatrixMult {
 
             for (dest = 1; dest <= size - 1; dest++) {
                 rows[0] = (dest <= extra) ? averow + 1 : averow;
-
-                System.out.printf("Sending %d rows to task %d offset= %d\n", rows[0], dest, offset[0]);
 
                 mpi.MPI_Send(offset, 0, 1, dest, 1, mpi.MPI_COMM_WORLD);
                 mpi.MPI_Send(rows, 0, 1, dest, 1, mpi.MPI_COMM_WORLD);
@@ -45,20 +40,14 @@ class MatrixMult {
                 mpi.MPI_Recv(offset, 0, 1, source, 2, mpi.MPI_COMM_WORLD);
                 mpi.MPI_Recv(rows, 0, 1, source, 2, mpi.MPI_COMM_WORLD);
                 mpi.MPI_Recv(c.getValues(), 0, c.getNCols() * c.getNRows(), source, 2, mpi.MPI_COMM_WORLD);
-
-                System.out.printf("Received results from task %d\n", source);
             }
 
-            System.out.println("final");
         } else {
             mpi.MPI_Recv(offset, 0, 1, 0, 1, mpi.MPI_COMM_WORLD);
             mpi.MPI_Recv(rows, 0, 1, 0, 1, mpi.MPI_COMM_WORLD);
             mpi.MPI_Recv(a.getValues(), 0, rows[0] * a.getNCols(), 0, 1, mpi.MPI_COMM_WORLD);
             mpi.MPI_Recv(b.getValues(), 0, b.getNRows() * b.getNCols(), 0,
                     1, mpi.MPI_COMM_WORLD);
-
-            System.out.println("Recieved offset: " + offset[0]);
-            System.out.println("Recieved rows: " + rows[0]);
 
             for (int i = 0; i < b.getNCols(); i++) {
                 for (int j = 0; j < rows[0]; j++) {
@@ -74,8 +63,6 @@ class MatrixMult {
             mpi.MPI_Send(rows, 0, 1, 0, 2, mpi.MPI_COMM_WORLD);
             mpi.MPI_Send(c.getValues(), 0, c.getNCols() * c.getNRows(), 0, 2, mpi.MPI_COMM_WORLD);
         }
-
-        //mpi.MPI_Finalize();
     }
 }
 
