@@ -1,4 +1,4 @@
-## Application start (Underline)
+## Application start
 
 Create dockerfile with following structure:
 
