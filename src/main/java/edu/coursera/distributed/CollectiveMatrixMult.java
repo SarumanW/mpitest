@@ -53,6 +53,7 @@ public class CollectiveMatrixMult {
             }
 
             mpi.MPI_Waitall(requests);
+
         } else {
 
             for (int i = startRow; i < endRow; i++) {
